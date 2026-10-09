@@ -18,7 +18,17 @@ class KategoriFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'kode_kategori' => strtoupper(fake()->unique()->bothify('??#')),
+            'nama_kategori' => fake()->unique()->randomElement([
+                'Rekayasa Perangkat Lunak',
+                'Sains Data & Kecerdasan Buatan',
+                'Jaringan Komputer & Keamanan Siber',
+                'Sistem Informasi & Manajemen',
+                'Matematika & Teori Komputasi',
+                'Pengembangan Web Modern',
+                'Algoritma & Struktur Data',
+                'Basis Data & Cloud Computing',
+            ]),
         ];
     }
 }

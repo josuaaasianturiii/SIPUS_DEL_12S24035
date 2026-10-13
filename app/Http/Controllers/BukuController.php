@@ -55,7 +55,7 @@ class BukuController extends Controller
      */
     public function show(Buku $buku)
     {
-        $buku->load('kategori');
+        $buku->load(['kategori', 'peminjamans' => fn($q) => $q->latest()]);
         return view('buku.show', compact('buku'));
     }
 

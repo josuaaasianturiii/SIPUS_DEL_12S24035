@@ -10,7 +10,16 @@
                 <i class="bi bi-book-half me-2"></i>Informasi Detail Buku
             </h2>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
+            @if($buku->stok > 0)
+                <a href="{{ route('peminjaman.create', ['buku_id' => $buku->id]) }}" class="btn btn-del shadow-sm">
+                    <i class="bi bi-journal-arrow-down me-1"></i> Pinjam Buku Ini
+                </a>
+            @else
+                <button class="btn btn-secondary shadow-sm" disabled title="Stok habis">
+                    <i class="bi bi-x-circle me-1"></i> Stok Habis (Tidak Dapat Dipinjam)
+                </button>
+            @endif
             <a href="{{ route('buku.edit', $buku) }}" class="btn btn-warning shadow-sm">
                 <i class="bi bi-pencil-square me-1"></i> Ubah Data
             </a>
@@ -83,13 +92,55 @@
                         <h6 class="fw-bold text-dark mb-2">
                             <i class="bi bi-text-paragraph me-1 text-del-purple"></i>Sinopsis / Ringkasan Buku:
                         </h6>
-                        <div class="p-3 bg-light rounded-3 text-secondary lh-lg">
+                        <div class="p-3 bg-light rounded-3 text-secondary lh-lg mb-4">
                             @if($buku->sinopsis)
                                 {{ $buku->sinopsis }}
                             @else
                                 <em class="text-muted">Tidak ada deskripsi sinopsis untuk buku ini.</em>
                             @endif
                         </div>
+                    </div>
+
+                    <div>
+                        <h6 class="fw-bold text-dark mb-2">
+                            <i class="bi bi-clock-history me-1 text-del-purple"></i>Riwayat Sirkulasi Peminjaman Buku Ini:
+                        </h6>
+                        @if($buku->peminjamans->count() > 0)
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered align-middle small mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Kode Pinjam</th>
+                                            <th>NIM & Nama</th>
+                                            <th>Tgl Pinjam</th>
+                                            <th>Jatuh Tempo</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($buku->peminjamans->take(5) as $p)
+                                            <tr>
+                                                <td class="font-monospace fw-semibold">{{ $p->kode_pinjam }}</td>
+                                                <td>{{ $p->nim_peminjam }} - {{ $p->nama_peminjam }}</td>
+                                                <td>{{ \Carbon\Carbon::parse($p->tanggal_pinjam)->format('d/m/Y') }}</td>
+                                                <td>{{ \Carbon\Carbon::parse($p->tanggal_jatuh_tempo)->format('d/m/Y') }}</td>
+                                                <td>
+                                                    @if($p->status === 'dipinjam')
+                                                        <span class="badge bg-warning text-dark">Dipinjam</span>
+                                                    @else
+                                                        <span class="badge bg-success">Dikembalikan</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="p-3 bg-light rounded text-muted small">
+                                <i class="bi bi-info-circle me-1"></i>Belum ada riwayat peminjaman untuk buku ini.
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

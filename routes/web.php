@@ -2,8 +2,16 @@
 
 use App\Http\Controllers\BukuController;
 use App\Http\Controllers\KategoriController;
+use App\Http\Controllers\PeminjamanController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => redirect()->route('buku.index'));
 Route::resource('kategori', KategoriController::class);
 Route::resource('buku', BukuController::class);
+
+// Sirkulasi Peminjaman & Pengembalian Buku (ACID & lockForUpdate)
+Route::get('peminjaman', [PeminjamanController::class, 'index'])->name('peminjaman.index');
+Route::get('peminjaman/create', [PeminjamanController::class, 'create'])->name('peminjaman.create');
+Route::post('peminjaman', [PeminjamanController::class, 'store'])->name('peminjaman.store');
+Route::post('peminjaman/{id}/kembalikan', [PeminjamanController::class, 'kembalikan'])->name('peminjaman.kembalikan');
+

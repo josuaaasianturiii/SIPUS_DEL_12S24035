@@ -98,13 +98,18 @@
                             <i class="bi bi-tags me-1"></i> Data Kategori
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('peminjaman.*') ? 'active fw-semibold' : '' }}" href="{{ route('peminjaman.index') }}">
+                            <i class="bi bi-arrow-left-right me-1"></i> Sirkulasi Peminjaman
+                        </a>
+                    </li>
                 </ul>
                 <div class="d-flex gap-2">
-                    <a href="{{ route('buku.create') }}" class="btn btn-sm btn-light text-del-purple fw-semibold shadow-sm">
-                        <i class="bi bi-plus-circle-fill me-1"></i> Tambah Buku
+                    <a href="{{ route('peminjaman.create') }}" class="btn btn-sm btn-light text-del-purple fw-semibold shadow-sm">
+                        <i class="bi bi-journal-arrow-down me-1"></i> Pinjam Buku
                     </a>
-                    <a href="{{ route('kategori.create') }}" class="btn btn-sm btn-outline-light fw-semibold">
-                        <i class="bi bi-folder-plus me-1"></i> Tambah Kategori
+                    <a href="{{ route('buku.create') }}" class="btn btn-sm btn-outline-light fw-semibold">
+                        <i class="bi bi-plus-circle me-1"></i> Tambah Buku
                     </a>
                 </div>
             </div>

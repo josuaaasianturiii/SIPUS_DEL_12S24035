@@ -97,4 +97,53 @@ class SipusDelTest extends TestCase
             'judul' => 'Enterprise Architecture Planning',
         ]);
     }
+
+    public function test_katalog_buku_displays_query_builder_statistics_and_withcount_peminjamans(): void
+    {
+        $kategori = Kategori::create([
+            'kode_kategori' => 'AI',
+            'nama_kategori' => 'Artificial Intelligence',
+        ]);
+
+        $buku = Buku::create([
+            'isbn' => '978-123-456-789-0',
+            'judul' => 'Deep Learning Foundation',
+            'penulis' => 'Andrew Ng',
+            'penerbit' => 'MIT Press',
+            'tahun_terbit' => 2024,
+            'kategori_id' => $kategori->id,
+            'stok' => 8,
+            'sinopsis' => 'Buku dasar deep learning.',
+        ]);
+
+        $response = $this->get(route('buku.index'));
+        $response->assertStatus(200);
+        $response->assertViewHas('stats');
+        $response->assertSee('Total Judul Buku');
+        $response->assertSee('Total Stok Tersedia');
+        $response->assertSee('0x dipinjam');
+    }
+
+    public function test_katalog_buku_dynamic_search_and_session_state(): void
+    {
+        $kategori = Kategori::create([
+            'kode_kategori' => 'SEC',
+            'nama_kategori' => 'Cyber Security',
+        ]);
+
+        Buku::create([
+            'isbn' => '978-777-666-555-4',
+            'judul' => 'Ethical Hacking & Defense',
+            'penulis' => 'Kevin Mitnick',
+            'penerbit' => 'Wiley',
+            'tahun_terbit' => 2025,
+            'kategori_id' => $kategori->id,
+            'stok' => 4,
+        ]);
+
+        $response = $this->get(route('buku.index', ['search' => 'Hacking']));
+        $response->assertStatus(200);
+        $response->assertSee('Ethical Hacking & Defense');
+        $this->assertEquals('Hacking', session('last_buku_search'));
+    }
 }

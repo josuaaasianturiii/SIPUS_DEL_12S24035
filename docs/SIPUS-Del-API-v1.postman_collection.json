@@ -1,0 +1,690 @@
+{
+  "info": {
+    "_postman_id": "c1f7a28e-89a3-4a11-bcf3-a7a7d49b2026",
+    "name": "PPW Week 9 - SIPUS-Del Web Services & REST API",
+    "description": "Koleksi Postman Resmi Pengujian Web Services Distributed: SOAP Clearance Check Legacy & RESTful API v1 SIPUS-Del (12S3101 - Semester Genap 2026/2027)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sample_buku_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "sample_peminjaman_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01. Legacy SOAP Services",
+      "item": [
+        {
+          "name": "GET WSDL Kontrak Layanan (XML)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8000/soap/sipus.wsdl",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["soap", "sipus.wsdl"]
+            }
+          }
+        },
+        {
+          "name": "POST SOAP CheckClearanceStatus (Sukses / Bebas Pustaka)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:m=\"http://sipus.del.ac.id/soap/library\">\n    <soap:Body>\n        <m:CheckClearanceStatusRequest>\n            <m:nim_peminjam>12S24035</m:nim_peminjam>\n        </m:CheckClearanceStatusRequest>\n    </soap:Body>\n</soap:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/soap/sipus",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["soap", "sipus"]
+            }
+          }
+        },
+        {
+          "name": "POST SOAP Malformed / Empty (Uji SOAP Fault 500)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "text/xml; charset=utf-8",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">\n    <soap:Body>\n        <m:CheckClearanceStatusRequest>\n            <!-- Tag nim_peminjam sengaja dikosongkan -->\n        </m:CheckClearanceStatusRequest>\n    </soap:Body>\n</soap:Envelope>",
+              "options": {
+                "raw": {
+                  "language": "xml"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8000/soap/sipus",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8000",
+              "path": ["soap", "sipus"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Autentikasi Stateless Sanctum",
+      "item": [
+        {
+          "name": "POST Login Pustakawan (Terbitkan Token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var json = pm.response.json();",
+                  "    if (json.data && json.data.access_token) {",
+                  "        pm.collectionVariables.set('token', json.data.access_token);",
+                  "        console.log('Bearer Token tersimpan otomatis di variabel {{token}}');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"pustakawan@del.ac.id\",\n    \"password\": \"password123\",\n    \"device_name\": \"postman-desktop\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "POST Login Gagal Kredensial Salah (Uji 401 RFC 7807)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"pustakawan@del.ac.id\",\n    \"password\": \"salah-password\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "GET Profil User Me (Wajib Bearer Token)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "POST Logout Pustakawan (Revoke Token)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Katalog Buku REST Provider",
+      "item": [
+        {
+          "name": "GET Koleksi Buku (Publik, Paginasi & HATEOAS)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bukus?per_page=5&sort=stok&dir=desc",
+              "host": ["{{base_url}}"],
+              "path": ["bukus"],
+              "query": [
+                { "key": "per_page", "value": "5" },
+                { "key": "sort", "value": "stok" },
+                { "key": "dir", "value": "desc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET Detail Buku (Publik, Eager Loading)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bukus/{{sample_buku_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["bukus", "{{sample_buku_id}}"]
+            }
+          }
+        },
+        {
+          "name": "GET Detail Buku Tidak Ada (Uji 404 RFC 7807)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bukus/99999",
+              "host": ["{{base_url}}"],
+              "path": ["bukus", "99999"]
+            }
+          }
+        },
+        {
+          "name": "POST Buat Buku Tanpa Token (Uji 401 RFC 7807)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"isbn\": \"978-602-0001-99-9\",\n    \"judul\": \"Buku Tanpa Auth\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bukus",
+              "host": ["{{base_url}}"],
+              "path": ["bukus"]
+            }
+          }
+        },
+        {
+          "name": "POST Buat Buku Input Kosong (Uji 422 RFC 7807)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bukus",
+              "host": ["{{base_url}}"],
+              "path": ["bukus"]
+            }
+          }
+        },
+        {
+          "name": "POST Buat Buku Baru Sukses (201 Created + Header Location)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var json = pm.response.json();",
+                  "    if (json.data && json.data.id) {",
+                  "        pm.collectionVariables.set('sample_buku_id', json.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"isbn\": \"978-602-0001-88-2\",\n    \"judul\": \"Arsitektur RESTful Web Services di Industri Enterprise\",\n    \"penulis\": \"Chandro Pardede, S.Kom., M.Sc.\",\n    \"penerbit\": \"Del Press\",\n    \"tahun_terbit\": 2026,\n    \"kategori_id\": 1,\n    \"stok\": 5,\n    \"sinopsis\": \"Buku referensi lengkap standarisasi REST API, RFC 7807, dan HATEOAS level 3.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bukus",
+              "host": ["{{base_url}}"],
+              "path": ["bukus"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Pembaruan Parsial (Uji Semantik PATCH - Ubah Stok Saja)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"stok\": 12\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bukus/{{sample_buku_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["bukus", "{{sample_buku_id}}"]
+            }
+          }
+        },
+        {
+          "name": "PUT Penggantian Penuh (Uji Semantik PUT - Reset Sinopsis)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"isbn\": \"978-602-0001-88-2\",\n    \"judul\": \"Arsitektur RESTful Web Services di Industri Enterprise (Edisi 2)\",\n    \"penulis\": \"Chandro Pardede, S.Kom., M.Sc.\",\n    \"penerbit\": \"Del Press\",\n    \"tahun_terbit\": 2026,\n    \"kategori_id\": 1,\n    \"stok\": 12\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/bukus/{{sample_buku_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["bukus", "{{sample_buku_id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE Hapus Buku (Uji 204 No Content)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bukus/{{sample_buku_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["bukus", "{{sample_buku_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Transaksi Sirkulasi Peminjaman ACID",
+      "item": [
+        {
+          "name": "GET Daftar Peminjaman (Terpaginasi & Filter)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/peminjamans?status=dipinjam&per_page=10",
+              "host": ["{{base_url}}"],
+              "path": ["peminjamans"],
+              "query": [
+                { "key": "status", "value": "dipinjam" },
+                { "key": "per_page", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST Pinjam Buku Baru (201 Created + Dekremen Stok Atomik)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var json = pm.response.json();",
+                  "    if (json.data && json.data.id) {",
+                  "        pm.collectionVariables.set('sample_peminjaman_id', json.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"buku_id\": 1,\n    \"nim_peminjam\": \"12S24035\",\n    \"nama_peminjam\": \"Josua Sianturi\",\n    \"durasi_hari\": 7\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/peminjamans",
+              "host": ["{{base_url}}"],
+              "path": ["peminjamans"]
+            }
+          }
+        },
+        {
+          "name": "POST Pinjam Buku Duplikat (Uji 409 Conflict)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"buku_id\": 1,\n    \"nim_peminjam\": \"12S24035\",\n    \"nama_peminjam\": \"Josua Sianturi\",\n    \"durasi_hari\": 7\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/peminjamans",
+              "host": ["{{base_url}}"],
+              "path": ["peminjamans"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Kembalikan Buku (Uji 200 OK + Inkremen Stok)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/peminjamans/{{sample_peminjaman_id}}/kembalikan",
+              "host": ["{{base_url}}"],
+              "path": ["peminjamans", "{{sample_peminjaman_id}}", "kembalikan"]
+            }
+          }
+        },
+        {
+          "name": "PATCH Kembalikan Ulang Buku (Uji 409 Conflict)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                { "key": "token", "value": "{{token}}", "type": "string" }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/peminjamans/{{sample_peminjaman_id}}/kembalikan",
+              "host": ["{{base_url}}"],
+              "path": ["peminjamans", "{{sample_peminjaman_id}}", "kembalikan"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. REST Service Consumer (External API)",
+      "item": [
+        {
+          "name": "GET Referensi Metadata Buku Eksternal (OpenLibrary API)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/bukus/1/referensi-eksternal",
+              "host": ["{{base_url}}"],
+              "path": ["bukus", "1", "referensi-eksternal"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

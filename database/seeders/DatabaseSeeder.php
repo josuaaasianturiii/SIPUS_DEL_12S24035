@@ -39,5 +39,14 @@ class DatabaseSeeder extends Seeder
                 'kategori_id' => $kategori->id,
             ]);
         }
+
+        // 3. Buat Akun Uji Pustakawan untuk Otentikasi API Sanctum
+        User::firstOrCreate(
+            ['email' => 'pustakawan@del.ac.id'],
+            [
+                'name' => 'Pustakawan Del',
+                'password' => bcrypt('password123'),
+            ]
+        );
     }
 }

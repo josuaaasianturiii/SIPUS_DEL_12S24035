@@ -12,6 +12,16 @@ class PeminjamanTransactionTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $librarian = \App\Models\User::factory()->create([
+            'email' => 'pustakawan@del.ac.id',
+        ]);
+        $this->actingAs($librarian);
+    }
+
     private function createBuku(int $stok = 3): Buku
     {
         $kategori = Kategori::firstOrCreate(

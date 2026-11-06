@@ -104,13 +104,54 @@
                         </a>
                     </li>
                 </ul>
-                <div class="d-flex gap-2">
-                    <a href="{{ route('peminjaman.create') }}" class="btn btn-sm btn-light text-del-purple fw-semibold shadow-sm">
-                        <i class="bi bi-journal-arrow-down me-1"></i> Pinjam Buku
-                    </a>
-                    <a href="{{ route('buku.create') }}" class="btn btn-sm btn-outline-light fw-semibold">
-                        <i class="bi bi-plus-circle me-1"></i> Tambah Buku
-                    </a>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    @auth
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-light text-del-purple fw-semibold dropdown-toggle shadow-sm d-flex align-items-center gap-1" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle fs-6"></i>
+                                <span>{{ Auth::user()->name }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                <li class="px-3 py-2 small text-muted border-bottom">
+                                    <div class="fw-bold text-dark">{{ Auth::user()->name }}</div>
+                                    <div class="text-secondary">{{ Auth::user()->email }}</div>
+                                    @if(session('login_timestamp'))
+                                        <div class="text-success mt-1 small">
+                                            <i class="bi bi-clock-history me-1"></i>Login: {{ session('login_timestamp') }}
+                                        </div>
+                                    @endif
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('buku.create') }}">
+                                        <i class="bi bi-plus-circle me-2 text-del-purple"></i>Tambah Buku
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('kategori.create') }}">
+                                        <i class="bi bi-folder-plus me-2 text-del-purple"></i>Tambah Kategori
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('peminjaman.create') }}">
+                                        <i class="bi bi-journal-arrow-down me-2 text-del-purple"></i>Catat Peminjaman
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form action="{{ route('logout') }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            <i class="bi bi-box-arrow-right me-2"></i>Keluar (Logout)
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-sm btn-outline-light fw-semibold">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Login Pustakawan
+                        </a>
+                    @endauth
                 </div>
             </div>
         </div>

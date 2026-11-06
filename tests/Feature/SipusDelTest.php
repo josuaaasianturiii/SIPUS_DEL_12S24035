@@ -11,6 +11,16 @@ class SipusDelTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $librarian = \App\Models\User::factory()->create([
+            'email' => 'pustakawan@del.ac.id',
+        ]);
+        $this->actingAs($librarian);
+    }
+
     public function test_root_redirects_to_buku_index(): void
     {
         $response = $this->get('/');
